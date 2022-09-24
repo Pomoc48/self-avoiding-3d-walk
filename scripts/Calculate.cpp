@@ -1,49 +1,38 @@
 #include <iostream>
 #include <vector>
+
 using namespace std;
 
-class Point
-{
-  public:
-    int x;
-    int y;
-    int z;
-    bool vis;
-};
+typedef struct {
+  int x;
+  int y;
+  int z;
+} Vector3;
 
-class Vector3
-{
-  public:
-    int x;
-    int y;
-    int z;
-};
+typedef struct {
+  Vector3 pos;
+  bool vis;
+} Point;
 
-class Move
-{
-  public:
-    int direction;
-    bool valid;
-};
+typedef struct {
+  int direction;
+  bool valid;
+} Move;
 
-class Path
-{
-  public:
-    int x;
-    int y;
-    int z;
-    int validMoves;
-};
+typedef struct {
+  Vector3 pos;
+  int validMoves;
+} Path;
 
-const int dimensions = 6;
+const int dimensions = 4;
 const int maxPoints = dimensions * dimensions * dimensions;
 
 Vector3 player;
 
 vector<Point> pointsList;
 vector<Path> path;
-
 vector<Path> badWayList;
+
 bool reverseOn = false;
 bool foundPath = false;
 
@@ -53,111 +42,59 @@ int floatCheck = 0;
 
 long moveCount = 0;
 
-Vector3 getVector(Path path)
-{
-  Vector3 vector;
-  vector.x = path.x;
-  vector.y = path.y;
-  vector.z = path.z;
-  return vector;
+bool checkVectors(Vector3 pos1, Vector3 pos2) {
+  if (pos1.x != pos2.x) return false;
+  if (pos1.y != pos2.y) return false;
+  if (pos1.z != pos2.z) return false;
+  return true;
 }
 
-Vector3 getVector(Point point)
-{
-  Vector3 vector;
-  vector.x = point.x;
-  vector.y = point.y;
-  vector.z = point.z;
-  return vector;
-}
-
-void prepare()
-{
-  for (int x = 0; x < dimensions; x++)
-  {
-    for (int y = 0; y < dimensions; y++)
-    {
-      for (int z = 0; z < dimensions; z++)
-      {
-        Point point;
-        point.vis = false;
-        point.x = x;
-        point.y = y;
-        point.z = z;
-
-        pointsList.push_back(point);
-      }
-    }
+void updatePoints() {
+  for (int i = 0; i < maxPoints; i++) {
+    bool match = checkVectors(player, pointsList[i].pos);
+    if (match) pointsList[i].vis = true;
   }
 }
 
-bool checkVectors(Vector3 pos1, Vector3 pos2)
-{
-  bool noFail = true;
-
-  if (pos1.x != pos2.x) {
-    noFail = false;
-  }
-
-  if (pos1.y != pos2.y) {
-    noFail = false;
-  }
-
-  if (pos1.z != pos2.z) {
-    noFail = false;
-  }
-
-  return noFail;
-}
-
-void updatePoints()
-{
-  for (int i = 0; i < maxPoints; i++)
-  {
-    if (checkVectors(player, getVector(pointsList[i])))
-    {
-      pointsList[i].vis = true;
-    }
-  }
-}
-
-Path createPath(int validMoves)
-{
+Path createPath(int validMoves) {
   Path localPath;
 
-  localPath.x = player.x;
-  localPath.y = player.y;
-  localPath.z = player.z;
+  localPath.pos = player;
   localPath.validMoves = validMoves;
 
   return localPath;
 }
 
-void placeRandom()
-{
-  int x = rand() % dimensions;
-  int y = rand() % dimensions;
-  int z = rand() % dimensions;
-
-  Vector3 vector;
-  vector.x = x;
-  vector.y = y;
-  vector.z = z;
-
-  player = vector;
+void placeRandom() {
+  player.x = rand() % dimensions;
+  player.y = rand() % dimensions;
+  player.z = rand() % dimensions;
 
   updatePoints();
   path.push_back(createPath(3));
 }
 
-bool wrongMove(Vector3 pos)
-{
-  for (int i = 0; i < maxPoints; i++)
-  {
-    if (checkVectors(pos, getVector(pointsList[i])) && pointsList[i].vis)
-    {
-      return true;
+void prepare() {
+  for (int x = 0; x < dimensions; x++) {
+    for (int y = 0; y < dimensions; y++) {
+      for (int z = 0; z < dimensions; z++) {
+        Point point;
+        point.vis = false;
+        point.pos.x = x;
+        point.pos.y = y;
+        point.pos.z = z;
+
+        pointsList.push_back(point);
+      }
     }
+  }
+  placeRandom();
+}
+
+bool wrongMove(Vector3 pos) {
+  for (int i = 0; i < maxPoints; i++) {
+    bool match = checkVectors(pos, pointsList[i].pos);
+    if (match && pointsList[i].vis) return true;
   }
 
   return false;
@@ -165,33 +102,17 @@ bool wrongMove(Vector3 pos)
 
 bool outOfDimensions(Vector3 pos)
 {
-  if (pos.x < 0 || pos.x >= dimensions)
-  {
-    return true;
-  }
-
-  if (pos.y < 0 || pos.y >= dimensions)
-  {
-    return true;
-  }
-
-  if (pos.z < 0 || pos.z >= dimensions)
-  {
-    return true;
-  }
+  if (pos.x < 0 || pos.x >= dimensions) return true;
+  if (pos.y < 0 || pos.y >= dimensions) return true;
+  if (pos.z < 0 || pos.z >= dimensions) return true;
 
   return false;
 }
 
-Vector3 getNewPosition(int direction)
-{
-  Vector3 vector;
-  vector.x = player.x;
-  vector.y = player.y;
-  vector.z = player.z;
+Vector3 getNewPosition(int direction) {
+  Vector3 vector = player;
 
-  switch (direction)
-  {
+  switch (direction) {
     case 1:
       vector.y = vector.y + 1;
       return vector;
@@ -218,27 +139,19 @@ Vector3 getNewPosition(int direction)
   }
 }
 
-vector<int> filterMoves(vector<Move> possible)
-{
+vector<int> filterMoves(vector<Move> possible) {
   vector<int> moves;
 
-  for (int i = 0; i < 6; i++)
-  {
-    if (possible[i].valid)
-    {
-      moves.push_back(possible[i].direction);
-    }
+  for (int i = 0; i < 6; i++) {
+    if (possible[i].valid) moves.push_back(possible[i].direction);
   }
 
   return moves;
 }
 
-bool routeBeenTried(Vector3 pos)
-{
-  for (int a = 0; a < badWayList.size(); a++)
-  {
-    if (checkVectors(pos, getVector(badWayList[a])))
-    {
+bool routeBeenTried(Vector3 pos) {
+  for (int a = 0; a < badWayList.size(); a++) {
+    if (checkVectors(pos, badWayList[a].pos)) {
       vector<Path>::iterator it = badWayList.begin();
       it += a;
       badWayList.erase(it);
@@ -249,12 +162,10 @@ bool routeBeenTried(Vector3 pos)
   return false;
 }
 
-vector<int> getPossibleMoves()
-{
+vector<int> getPossibleMoves() {
   vector<Move> possible;
 
-  for (int i = 0; i < 6; i++)
-  {
+  for (int i = 0; i < 6; i++) {
     Move move;
     move.direction = i;
     move.valid = true;
@@ -264,18 +175,15 @@ vector<int> getPossibleMoves()
   for (int i = 0; i < 6; i++) {
     Vector3 pos = getNewPosition(possible[i].direction);
 
-    if (outOfDimensions(pos))
-    {
+    if (outOfDimensions(pos)) {
       possible[i].valid = false;
     }
 
-    if (wrongMove(pos) && possible[i].valid)
-    {
+    if (wrongMove(pos) && possible[i].valid) {
       possible[i].valid = false;
     }
     
-    if (routeBeenTried(pos) && possible[i].valid)
-    {
+    if (routeBeenTried(pos) && possible[i].valid) {
       possible[i].valid = false;
     }
   }
@@ -283,8 +191,7 @@ vector<int> getPossibleMoves()
   return filterMoves(possible);
 }
 
-void move(int direction, int validMoves)
-{
+void move(int direction, int validMoves) {
   moveCount++;
   player = getNewPosition(direction);
 
@@ -292,34 +199,23 @@ void move(int direction, int validMoves)
   path.push_back(createPath(validMoves));
 }
 
-void updateBadWayList(Path p)
-{
+void updateBadWayList(Path p) {
   bool match = false;
 
-  for (int a = 0; a < badWayList.size(); a++)
-  {
-    if (checkVectors(getVector(p), getVector(badWayList[a])))
-    {
-      match = true;
-    }
+  for (int a = 0; a < badWayList.size(); a++) {
+    bool vectorM = checkVectors(p.pos, badWayList[a].pos);
+    if (vectorM) match = true;
   }
 
-  if (!match)
-  {
-    badWayList.push_back(p);
-  }
+  if (!match) badWayList.push_back(p);
 }
 
-void cutPath(int times)
-{
+void cutPath(int times) {
   int pathSize = path.size();
 
-  for (int i = pathSize - 1; i >= pathSize - times; i--)
-  {
-    for (int a = 0; a < maxPoints; a++)
-    {
-      if (checkVectors(getVector(path[i]), getVector(pointsList[a])))
-      {
+  for (int i = pathSize - 1; i >= pathSize - times; i--) {
+    for (int a = 0; a < maxPoints; a++) {
+      if (checkVectors(path[i].pos, pointsList[a].pos)) {
         pointsList[a].vis = false;
       }
     }
@@ -328,100 +224,52 @@ void cutPath(int times)
     path.erase(vi);
   }
 
-  Path p = path.back();
-
-  Vector3 vector;
-  vector.x = p.x;
-  vector.y = p.y;
-  vector.z = p.z;
-
-  player = vector;
+  player = path.back().pos;
 }
 
-void revert()
-{
+void revert() {
   reverseTries++;
 
-  for (int i = path.size() - 1; i >= 0; i--)
-  {
-    if (path[i].validMoves > 1)
-    {
+  for (int i = path.size() - 1; i >= 0; i--) {
+    if (path[i].validMoves > 1) {
       updateBadWayList(path[i+1]);
-
       cutPath(i);
       return;
     }
   }
 }
 
-void reset()
-{
+void reset() {
   tries++;
-
-  if (tries % 100000 == 0)
-  {
-    cout << tries;
-    cout << " restarts\n";
-  }
-
   reverseTries = 0;
 
   pointsList.clear();
   path.clear();
 
   prepare();
-  placeRandom();
 }
 
-void generatePath()
-{
+void generatePath() {
   vector<int> moves = getPossibleMoves();
 
   int movesSize = moves.size();
   int pathSize = path.size();
 
-  if (movesSize == 0)
-  {
-    if (pathSize == maxPoints)
-    {
+  if (movesSize == 0) {
+    if (pathSize == maxPoints) {
       foundPath = true;
       return;
     }
 
-    if ((float)pathSize / (float)maxPoints > 0.75)
-    {
+    if ((float)pathSize / (float)maxPoints > 0.75) {
       floatCheck++;
-
-      if (floatCheck % 100000 == 0)
-      {
-        cout << floatCheck;
-        cout << " float check pass\n";
-      }
-
-      if (reverseTries < 10000000)
-      {
-        revert();
-      }
-
-      else
-      {
-        // cout << "Reverse limit reached!\n";
-        reset();
-      }
+      if (reverseTries < 10000000) revert();
+      else reset();
     }
 
-    else
-    {
-      if (tries < 500000000)
-      {
-        reset();
-      }
-
-      else
-      {
-        // cout << "Limit reached!\n";
-        foundPath = true;
-      }
+    else {
+      if (tries < 500000000) reset();
+      else foundPath = true;
     }
 
     return;
@@ -431,26 +279,14 @@ void generatePath()
   move(direction, movesSize);
 }
 
-int main()
-{
-  srand(time(0));
-
-  prepare();
-  placeRandom();
-
-  while (!foundPath)
-  {
-    generatePath();
-  }
-
-  for (int i = 0; i < path.size(); i++)
-  {
+void showResults() {
+  for (int i = 0; i < path.size(); i++) {
     cout << "Vector3(";
-    cout << path[i].x;
+    cout << path[i].pos.x;
     cout << ", ";
-    cout << path[i].y;
+    cout << path[i].pos.y;
     cout << ", ";
-    cout << path[i].z;
+    cout << path[i].pos.z;
 
     cout << "),\n";
   }
@@ -468,6 +304,15 @@ int main()
 
   cout << moveCount;
   cout << " move count\n";
+}
 
+int main() {
+  srand(time(0));
+
+  prepare();
+
+  while (!foundPath) generatePath();
+
+  showResults();
   return 0;
 }
