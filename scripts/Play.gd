@@ -7,6 +7,8 @@ var _scene: Spatial
 var _tween_playing: bool
 var _result: bool
 
+var _box_dimensions: int = 5
+
 var _path = [
 	Vector3(0, 3, 1),
 	Vector3(0, 2, 1),
@@ -136,7 +138,6 @@ var _path = [
 ]
 
 var _iteration: int = 0
-var _box_dimensions: int = 5
 
 
 func _ready():
@@ -156,12 +157,10 @@ func _process(_delta):
 		return
 
 	_tween_playing = true
-
 	_try_animate()
 
 
 func _try_animate():
-
 	if _iteration < _path.size() - 1:
 		_play_tween_animation("translation", _path[_iteration + 1], 0.2)
 		_iteration += 1

@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=2]
 
-[ext_resource path="res://scripts/Play5dim.gd" type="Script" id=1]
+[ext_resource path="res://scripts/Play.gd" type="Script" id=1]
 
 [sub_resource type="SpatialMaterial" id=7]
 emission_enabled = true

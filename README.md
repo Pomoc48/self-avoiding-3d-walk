@@ -9,30 +9,25 @@ Example of a 4x4x4 3d self-avoiding walk.
 
 ## Finding the correct path
 Number of possibilities for finding the correct path for every next dimension increases exponentially.
-Highest I was able to generate was a 5x5x5, which took about 45 mins with a script runing on every cpu thread.
 
 
-Create an executable for finding valid paths:
-
-```bash
-g++ -o Calculate.cpp -o calc -O3
-chmod +x calc
-```
-
-You can specifiy desired `const int dimensions` in the script file.
-
-Running the script:
+### Running single script at once:
 
 ```bash
-./find.sh
+dart calculate.dart 4 #size of the 3D cube
 ```
 
-Specify the number of cpu cores you want to use inside the file.
+### Running the script multiple times in parallel:
+
+```bash
+./find
+```
+
+Specify the number of cpu cores you want to use and the size of the cube inside the file.
 
 
-The script will run multiple instances at once and exit when any of them find the correct path.
-<br/>
-Results will be put in the newly created output.txt file.
+The script will exit when the correct path if found.
+Results will be put in the newly created `output.txt` file.
 
 
 ## Play the animation

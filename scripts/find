@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for i in `seq 1 1 12`
+#                 ^^ numer of cpu cores you want to use
+do
+    dart calculate.dart 5 > output.txt &
+done
+
+watch -gn 1 grep "Vector3" output.txt
+
+echo "Finished, check oputput.txt"
+killall dart:calculate.
